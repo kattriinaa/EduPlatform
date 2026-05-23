@@ -43,13 +43,13 @@ const filteredTasks = computed(() => {
 const criticalStats = computed(() => {
   return {
     needsRevision: assignments.value.filter(t => t.status === 'needs_revision').length,
-    dueSoon: assignments.value.filter(t => t.status === 'pending_submission' && isDueThisWeek(t.dueDate)).length
+    dueSoon: assignments.value.filter(t => t.status === 'not_submitted' && isDueThisWeek(t.dueDate)).length
   }
 })
 
 const fetchAssignments = async () => {
   try {
-    isLoading.value = TreeNodeValueGroup
+    isLoading.value = true
     const headers = { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' };
 
     const userId = localStorage.getItem('userId');
@@ -73,19 +73,19 @@ const fetchAssignments = async () => {
     enrolledCourses.forEach(course => {
       course.modules?.forEach(module => {
         module.lessons?.forEach(lesson => {
-          if (lesson.type === 'assignment') {
-            const taskEvent = events.find(e =>
-              Number(e.course_id) === Number(course.id) &&
-              e.title.trim().toLowerCase() === lesson.title.trim().toLowerCase()
-            );
-            rawTasks.push({ lesson, course, taskEvent });
+          if (lesson.type === 'assignment' || lesson.type === 'quiz') {
+          const taskEvent = events.find(e =>
+            Number(e.course_id) === Number(course.id) &&
+            e.title.trim().toLowerCase() === lesson.title.trim().toLowerCase()
+          );
+          rawTasks.push({ lesson, course, taskEvent });
           }
         })
       })
     })
 
     const results = await Promise.all(rawTasks.map(async ({ lesson, course, taskEvent }) => {
-      let status = 'pending_submission';
+      let status = 'not_submitted';
       let teacherComment = null;
 
       try {
@@ -126,9 +126,11 @@ onMounted(fetchAssignments);
 const statusConfig = {
   'needs_revision': { color: 'text-rose-600 bg-rose-50', icon: AlertCircle, label: 'Revision Required' },
   'approved': { color: 'text-emerald-600 bg-emerald-50', icon: CheckCircle2, label: 'Completed' },
-  'pending_submission': { color: 'text-slate-400 bg-slate-50', icon: FileText, label: 'Pending' },
-  'submitted': { color: 'text-blue-600 bg-blue-50', icon: Loader2, label: 'In Review' }
-};
+  
+  'pending': { color: 'text-amber-600 bg-amber-50', icon: Loader2, label: 'In Review' }, 
+  
+  'not_submitted': { color: 'text-slate-400 bg-slate-50', icon: FileText, label: 'Pending' }
+}
 
 const goToLesson = (courseId, lessonId) => {
   if (courseId && lessonId) router.push(`/course/${courseId}/lesson/${lessonId}`);
@@ -172,7 +174,7 @@ const goToLesson = (courseId, lessonId) => {
               { key: 'all', label: 'All' },
               { key: 'needs_revision', label: 'Fixes' },
               { key: 'approved', label: 'Done' },
-              { key: 'pending_submission', label: 'To-Do' }
+              { key: 'not_submitted', label: 'To-Do' }
             ]" :key="opt.key" @click="activeFilter = opt.key"
               class="px-5 py-3 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border"
               :class="activeFilter === opt.key ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-100'">
@@ -187,11 +189,11 @@ const goToLesson = (courseId, lessonId) => {
           class="relative bg-white border border-slate-100 rounded-[2.5rem] p-6 md:p-8 transition-all hover:shadow-2xl hover:shadow-indigo-500/10 group overflow-hidden"
           :class="{ 
             'border-rose-200 bg-rose-50/20': task.status === 'needs_revision',
-            'border-amber-200 bg-amber-50/20': isDueThisWeek(task.dueDate) && task.status === 'pending_submission'
+            'border-amber-200 bg-amber-50/20': isDueThisWeek(task.dueDate) && task.status === 'not_submitted'
           }">
           
           <div v-if="task.status === 'needs_revision'" class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500"></div>
-          <div v-else-if="isDueThisWeek(task.dueDate) && task.status === 'pending_submission'" class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
+          <div v-else-if="isDueThisWeek(task.dueDate) && task.status === 'not_submitted'" class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
 
           <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
             <div class="flex items-start gap-5">
@@ -203,7 +205,7 @@ const goToLesson = (courseId, lessonId) => {
               <div>
                 <div class="flex flex-wrap items-center gap-3 mb-1">
                   <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{{ task.title }}</h3>
-                  <span v-if="isDueThisWeek(task.dueDate) && task.status === 'pending_submission'" 
+                  <span v-if="isDueThisWeek(task.dueDate) && task.status === 'not_submitted'" 
                         class="px-2 py-0.5 rounded-lg bg-amber-500 text-[9px] font-black uppercase text-white">Due Soon</span>
                 </div>
                 

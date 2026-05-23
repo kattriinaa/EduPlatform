@@ -82,7 +82,11 @@ const sendMessage = async () => {
   inputMessage.value = ''
   isLoading.value = true
 
-  let contextPrompt = "You are a helpful educational assistant."
+  let contextPrompt = `You are an encouraging educational assistant and mentor. 
+  CRITICAL RULE: Never give away the full final solution, complete code, or direct answers to assignments. 
+  Instead, guide the student step-by-step using hints, asking guiding questions, pointing out conceptual errors, or explaining underlying principles. 
+  Your goal is to help them think and arrive at the solution themselves.`
+
   if (props.lessonContext) {
     contextPrompt += ` 
     Current Lesson Context:
@@ -90,7 +94,7 @@ const sendMessage = async () => {
     - Theoretical Content: ${props.lessonContext.content || 'No theory text provided'}
     - Practical Assignment: ${props.lessonContext.assignment_instruction || 'No assignment provided'}
     
-    Use this information to answer the student's questions more specifically.`
+    Use this context to tailor your hints specifically to this assignment.`
   }
 
   try {

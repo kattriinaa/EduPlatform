@@ -25,6 +25,7 @@ const isTeacher = computed(() => localStorage.getItem('userRole') === 'teacher')
 const isStudent = computed(() => localStorage.getItem('userRole') === 'student')
 
 const isEditMode = ref(false)
+const isModalOpen = ref(false)
 
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
@@ -118,7 +119,7 @@ const goToLesson = (lessonId) => {
   if (isEnrolled.value || userRole === 'teacher') {
     router.push(`/course/${id}/lesson/${lessonId}`)
   } else {
-    alert("Please enroll in the course to access lessons.")
+    isModalOpen.value = true
   }
 }
 
@@ -476,6 +477,32 @@ onMounted(() => {
       </div>
     </div>
     <AiChat v-if="route.name && !route.meta.hideNavbar" />
+  </div>
+  <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="isModalOpen = false"></div>
+    <div class="relative bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-xl max-w-md w-full border border-slate-100 dark:border-slate-700 transform transition-all">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/50 mb-4">
+        <svg class="h-6 w-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+      </div>
+      <div class="text-center">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+          Access Denied
+        </h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+          Please enroll in the course to get access to this lesson and additional materials.
+        </p>
+      </div>
+      <div class="mt-6 flex justify-center">
+        <button 
+          @click="isModalOpen = false"
+          class="w-full inline-flex justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
+        >
+          Got it!
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 <style></style>

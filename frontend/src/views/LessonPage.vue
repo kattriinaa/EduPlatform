@@ -20,6 +20,7 @@ const selectedAnswers = ref({})
 const testResult = ref(null)
 const score = ref(0)
 
+
 const assignmentAnswer = ref('')
 const isSubmitting = ref(false)
 const showSuccessAlert = ref(false)
@@ -27,6 +28,9 @@ const errorMessage = ref('')
 const submissionStatus = ref(null)
 
 const teacherFeedback = ref('')
+
+const normalizedLessonId = parseInt(lessonId)
+const lessonKey = `${courseId}_${normalizedLessonId}`
 
 const props = defineProps({
   courseId: String,
@@ -62,16 +66,16 @@ const fetchUserProgress = async () => {
       completedLessons.value = data.completed_lessons || []
     }
     
-    if (lesson.value?.type === 'assignment') {
-      const resSub = await fetch(`http://127.0.0.1:8000/api/submissions/status?user_id=${userId}&lesson_id=${lessonId}`, { headers })
-      if (resSub.ok) {
-        const subData = await resSub.json()
-        submissionStatus.value = subData.status
-        teacherFeedback.value = subData.feedback || ''
+    const resSub = await fetch(
+      `http://127.0.0.1:8000/api/submissions/status?user_id=${userId}&lesson_id=${lessonKey}`
+    )
+    if (resSub.ok) {
+      const subData = await resSub.json()
+      submissionStatus.value = (subData.status || '').toLowerCase()
+      teacherFeedback.value = subData.feedback || ''
         
-        if (subData.status === 'approved' && !isCompleted.value) {
-           completedLessons.value.push(`${courseId}_${lessonId}`)
-        }
+      if (subData.status?.toLowerCase() === 'approved' && !isCompleted.value) {
+         completedLessons.value.push(lessonKey)
       }
     }
   } catch (error) {
@@ -80,7 +84,7 @@ const fetchUserProgress = async () => {
 }
 
 const isCompleted = computed(() => {
-  return completedLessons.value.includes(`${courseId}_${lessonId}`)
+  return completedLessons.value.includes(lessonKey)
 })
 
 const checkQuiz = async () => {
@@ -112,7 +116,7 @@ const completeLesson = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: parseInt(userId),
-        lesson_id: `${courseId}_${lessonId}`
+        lesson_id: lessonKey
       })
     })
     if (response.ok) {
@@ -151,7 +155,7 @@ const submitAssignment = async () => {
     user_id: parseInt(uId),
     student_name: String(sName),
     course_id: parseInt(courseId),
-    lesson_id: parseInt(lessonId),
+    lesson_id: lessonKey,
     lesson_title: String(lesson.value.title),
     answer: String(assignmentAnswer.value),
     status: 'pending' 
@@ -164,9 +168,8 @@ const submitAssignment = async () => {
       body: JSON.stringify(payload)
     });
     if (response.ok) {
-      showAlert();
-      submissionStatus.value = 'pending';
-      teacherFeedback.value = ''; 
+      submissionStatus.value = 'pending'
+      showAlert()
     }
   } catch (err) {
     console.error("Submission error:", err)
@@ -220,7 +223,7 @@ onMounted(async () => {
 
             <div v-if="!submissionStatus || submissionStatus === 'needs_revision'">
               
-              <div v-if="submissionStatus === 'needs_revision'" class="mb-6 p-6 bg-orange-50 border-2 border-orange-200 rounded-2xl">
+              <div v-if="teacherFeedback && submissionStatus === 'needs_revision'" class="mb-6 p-6 bg-orange-50 border-2 border-orange-200 rounded-2xl">
                 <h3 class="text-orange-800 font-bold flex items-center gap-2 mb-2">
                   <AlertCircle class="w-5 h-5" /> Teacher's Feedback:
                 </h3>
