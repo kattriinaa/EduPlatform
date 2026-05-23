@@ -442,23 +442,6 @@ async def get_lesson(course_id: int, lesson_id: int):
                 
     raise HTTPException(status_code=404, detail="Lesson not found")
 
-
-@app.post("/api/submissions")
-async def submit_assignment(data: dict):
-    try:
-        submission = {
-            "user_id": data.get("user_id"),
-            "course_id": data.get("course_id"),
-            "lesson_id": data.get("lesson_id"),
-            "answer": data.get("answer"),
-            "type": data.get("type"),
-            "status": "pending",
-            "score": data.get("score", 0)
-        }
-        await db.submissions.insert_one(submission)
-        return {"message": "Assignment submitted successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
     
 
 @app.post("/api/lessons/complete")
@@ -496,12 +479,6 @@ async def update_course(course_id: int, updated_data: dict):
         return {"error": "Course not found"}, 404
         
     return {"message": "Course updated successfully"}
-
-
-@app.post("/api/assignments/submit")
-async def submit_assignment_form(submission: Submission):
-    result = await db.submissions.insert_one(submission.dict())
-    return {"message": "Assignment submitted successfully", "id": str(result.inserted_id)}
 
 
 @app.get("/api/submissions/pending-count")
@@ -639,4 +616,21 @@ async def get_teacher_submission_stats(user_id: str):
         "approved": approved_count,
         "needs_revision": revision_count,
         "pending": pending_count
+    }
+
+
+@app.get("/api/submissions/status")
+async def get_submission_status(user_id: int, lesson_id: str):
+
+    submission = await db.submissions.find_one({
+        "user_id": int(user_id),
+        "lesson_id": lesson_id
+    })
+
+    if not submission:
+        return {"status": None, "feedback": ""}
+
+    return {
+        "status": submission.get("status"),
+        "feedback": submission.get("feedback", "")
     }
