@@ -10,6 +10,7 @@ from openai import AsyncOpenAI
 from dotenv import load_dotenv
 import os
 import json
+from app.core.security import get_password_hash
 
 app = FastAPI()
 router = APIRouter()
@@ -189,6 +190,7 @@ async def get_events():
 
 @app.post("/api/register")
 async def register(data: RegisterRequest):
+    hashed_pass = get_password_hash(data.password)
     existing_user = await db.users.find_one({"email": data.email})
     if existing_user:
         return JSONResponse(
@@ -203,7 +205,7 @@ async def register(data: RegisterRequest):
         "id": new_id,
         "name": data.name,
         "email": data.email,
-        "password": data.password,
+        "password": hashed_pass,
         "role": data.role,
         "enrolled_courses": []
     }
