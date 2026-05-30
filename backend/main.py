@@ -10,7 +10,7 @@ from openai import AsyncOpenAI
 from dotenv import load_dotenv
 import os
 import json
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 
 app = FastAPI()
 router = APIRouter()
@@ -223,7 +223,7 @@ async def register(data: RegisterRequest):
 @app.post("/api/login")
 async def login(data: LoginRequest):
     user = await db.users.find_one({"email": data.email})
-    if not user or user["password"] != data.password:
+    if not user or not verify_password(data.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     return {
