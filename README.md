@@ -256,7 +256,5 @@ npm run dev
 
 
 ### Releases
-```text
-Версія v1.0 доступна за посиланням: https://github.com/kattriinaa/EduPlatform/releases/tag/v1.0
-Версія v1.1 доступна за посиланням: https://github.com/kattriinaa/EduPlatform/releases/tag/v1.1
-```
+- Версія v1.0 доступна за посиланням: https://github.com/kattriinaa/EduPlatform/releases/tag/v1.0
+- Версія v1.1 доступна за посиланням: https://github.com/kattriinaa/EduPlatform/releases/tag/v1.1
