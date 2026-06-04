@@ -271,7 +271,6 @@ async def generate_course_ai(payload: dict):
     if not syllabus:
         raise HTTPException(status_code=400, detail="Syllabus is required")
 
-    # Промт всередині generate_course_ai
     full_user_content = f"""
     Syllabus: {syllabus}
     Course Period: {start_date} to {end_date}
