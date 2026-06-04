@@ -282,13 +282,33 @@ async def generate_course_ai(payload: dict):
     Every lesson must be meaningful.
 
     STRICT CONTENT RULES:
-    1. EVERY lesson must have a "content" field (minimum 2 paragraphs) explaining the topic.
-    2. Lesson 1 (type: "text"): Theoretical foundation.
-    3. Lesson 2 (type: "assignment"): Must have "content" (explanation) AND "assignment_instruction" (the actual task).
-    4. Lesson 3 (type: "quiz"): Must have "content" (summary of what is being tested) AND a complete "quiz" object.
-    5. Plan "scheduled_date" logically across the course period.
-    6. Include "teacher_hours" (e.g., 0.5 for text, 2.0 for assignments).
+    1. EVERY lesson must have a "content" field (minimum 3 paragraphs). 
+       - FOR ALL TYPES: "content" must be a deep-dive textbook-style explanation. 
+       - PROHIBITION: Never include lists of tasks (1., 2., 3...) inside "content". 
+       - Use grammar explanations, examples, and nuances (with Spanish-to-Ukrainian translations).
 
+    2. Lesson 1 (type: "text"): 
+       - "content": Detailed theoretical foundation (no tasks here).
+       - "assignment_instruction": null.
+       - "quiz": null.
+
+    3. Lesson 2 (type: "assignment"): 
+       - "content": Detailed theory/rules only (the "study material").
+       - "assignment_instruction": MUST contain ONLY the practical tasks (numbered list). 
+         Do not repeat theory here.
+       - "quiz": null.
+
+    4. Lesson 3 (type: "quiz"): 
+       - "content": A concise summary/recap of the module topic to prepare for the test.
+       - "assignment_instruction": null.
+       - "quiz": A complete object with questions, options, and correct answers.
+
+    5. METADATA:
+       - "scheduled_date": Plan logically across the course period.
+       - "teacher_hours": 0.5 for text, 2.0 for assignments, 0.5 for quiz.
+
+    6. Pedagogical Style:
+       - Tone: Professional, encouraging, and highly instructional.
     
     JSON STRUCTURE:
     {{
